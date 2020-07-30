@@ -3,11 +3,13 @@
 \documentclass{icisfinal}
 \usepackage{graphicx}
 \usepackage{subcaption}
-\graphicspath{ {imagenes/} }
+\usepackage{imakeidx}
+\graphicspath{ {img/} }
 \title{TP Especializacion: Precios en CABA}
 \researchtype{Version preliminar}
 \shorttitle{TP Especializacion}
 \track{ABC}
+\makeindex
 
 \usepackage[hidelinks]{hyperref}
 \addbibresource{references.bib}
@@ -30,26 +32,36 @@
   \begin{tabularx}{\textwidth}{@{}*2{>
   {\centering\arraybackslash}X}@{}}       
     \textbf{Ignacio Chiapella} \\
-    FCEyN   \\
+    Universidad de Buenos Aires   \\
     ignacio.chiapella@gmail.com 
   \end{tabularx}
 \end{table}
 
-\begin{abstract}
-  Escribir resumen del articulo
 
-  \emph{\textbf{Keywords:} DataMining}
-\end{abstract}
+\tableofcontents
 
 \newpage
+\section{Abstract}
+\input{abstract.tex}
+
 \section{Introduccion}
 \input{introduccion.tex}
+
+\newpage
+\section{Desarrollo}
+\input{desarrollo.tex}
+
+\newpage
+\section{Modelos}
+\input{modelos.tex}
+
 
 \newpage
 \section{Conclusiones}
 \input{conclusiones.tex}
 
 \printbibliography
-
+\newpage
+\printindex
 \end{document}
 
