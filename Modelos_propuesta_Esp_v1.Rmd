@@ -1,0 +1,544 @@
+---
+title: "Trabajo Especializacion V1.0.0"
+author: "Ignacio Chiapella"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+  html_notebook:
+    df_print: paged
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+<style type="text/css">
+div.main-container {
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+## Librerias
+```{r message=FALSE, warning=FALSE}
+
+library(cluster)
+library(broom)
+library(glmnet)
+library(modelr)
+library(ggplot2)
+library(cowplot)
+
+
+
+library(mongolite)
+library(ggmap)
+library(dplyr)
+library(sp)
+library(lubridate)
+library(tidyr)
+library(reshape2)
+library(stringr)
+```
+
+
+
+## Modelo lineal
+```{r}
+preciosModelo <- read.csv(file = '/home/ignacio/datos/facultad/repos/tpEspecializacion/data/preciosModelo.csv')
+preciosModelo = select (preciosModelo,-c(X,barrio,sucursal))
+```
+
+### Modelo lineal simple para explicar el precio en función de la bandera supermercado
+```{r}
+# banderaDescripcion + medicion + barrio + banderaDescripcion + pVentasC + mCuadradoC
+lm_precio2bandera = lm(formula = precio~banderaDescripcion, data=preciosModelo)
+lm_precio2medicion = lm(formula = precio~medicion, data=preciosModelo)
+#lm_precio2barrio = lm(formula = precio~barrio, data=precios)
+```
+
+###  Analisis de precio por Barrio
+```{r}
+summary(lm_precio2bandera)
+#coef(lm_precio2bandera)
+```
+
+```{r}
+summary(lm_precio2medicion)
+
+```
+
+
+
+
+```{r}
+glance(lm_precio2bandera)
+glance(lm_precio2medicion)
+```
+
+
+
+```{r}
+# banderaDescripcion + sucursalTipo + medicion + pVentasC + mCuadradoC
+lm_precioMultiple = lm(precio ~ banderaDescripcion + sucursalTipo + medicion + pVentasC + mCuadradoC , data=preciosModelo)
+```
+
+```{r}
+# medicion - barrio - sucursalTipo - banderaDescripcion
+summary(lm_precioMultiple)
+```
+
+### Analisis modelo compuesto
+#### Analisis Residuo
+
+```{r}
+precioMultiple_resid = augment(lm_precioMultiple)
+precioMultiple_resid
+```
+
+```{r}
+#El promedio de los residuos debe ser un numero muy cercano a cero
+mean(precioMultiple_resid$.resid)
+```
+
+Como se puede apreciar el valor obtenido del promedio de todos los residuos, es un numero cercano a cero.
+
+```{r, fig.width=8,fig.height=8}
+ggplot(precioMultiple_resid, aes(precioMultiple_resid$.resid)) + 
+  geom_freqpoly(binwidth = 1.5)+
+  labs(fill = "precioMultiple_resid$.resid", title = "Poligono de frecuencia de los residuos", x = "Residuo", y = "count")
+```
+
+```{r, fig.width=8,fig.height=8}
+
+ggplot(precioMultiple_resid, aes(sample= .std.resid))+
+  stat_qq()+
+  geom_abline(colour = "blue", size=2)+
+  labs(title = "QQ plot Normal(0,1)",subtitle = "Regresion lineal multiple", x = "Valores teóricos", y = "Residuos estandarizados")+
+  theme_classic(base_size = 25) 
+
+```
+
+Se quiere validar, si los residuos siguien una distribucion teorica, N(0,1).
+Como podemos ver el modelo en los extremos tiende a alejarse de la distribucion Normal, por lo que puedo concluir que el modelo no esta bien definido.
+
+
+```{r, fig.width=8,fig.height=8}
+
+ggplot(precioMultiple_resid, aes(.fitted, .resid)) +
+  geom_point()+
+  geom_hline(yintercept = 0) +
+  geom_smooth(se = FALSE)+
+  labs(title = "Residuos versus el modelo ajustado",subtitle = "Regresion lineal multiple", x = "valores fitted", y =   "Residuos")+
+  theme_classic(base_size = 20)
+
+```
+
+
+
+Otro caso interesando para estudiar, es si los residuos tienen o no una estructura definida.
+Lo que se obseva es una clara estructura en el medio del grafico, esto esta indicando que una parte sistemática del fenómeno que se esta perdiendo, lo cual indica que el modelo no esta funcionando como se esperaria.
+
+
+### Modelo Logaritmico
+### log(precio)=β0+β1log(medicion)+β2log(bathrooms)+β3(banderaDescripcion)+β4(sucursalTipo)
+
+```{r}
+# banderaDescripcion + sucursalTipo + medicion + banderaDescripcion + pVentasC + mCuadradoC
+preciosModelo_log                    = preciosModelo
+preciosModelo_log$precio             = log(preciosModelo_log$precio)
+preciosModelo_log$medicion           = log(preciosModelo_log$medicion)
+
+lm_precioMultiple_log = lm(precio ~ banderaDescripcion + sucursalTipo + medicion  + pVentasC + mCuadradoC , data=preciosModelo_log)
+
+
+```
+
+```{r}
+summary(lm_precioMultiple_log)
+```
+
+```{r}
+lm_precioMultiple_log_resid = augment(lm_precioMultiple_log)
+lm_precioMultiple_log_resid
+```
+
+```{r}
+mean(lm_precioMultiple_log_resid$.resid)
+```
+
+```{r, fig.width=8,fig.height=8}
+ggplot(lm_precioMultiple_log_resid, aes(lm_precioMultiple_log_resid$.resid)) + 
+  geom_freqpoly(binwidth = 2.5)+
+  labs(fill = "propiedades_resid$.resid", title = "Poligono de frecuencia de los residuos", x = "Residuo", y = "count")
+```
+
+
+
+```{r, fig.width=8,fig.height=8}
+ggplot(lm_precioMultiple_log_resid, aes(sample= .std.resid))+
+  stat_qq()+
+  geom_abline(colour = "blue", size=2)+
+  labs(title = "QQ plot Normal(0,1)",subtitle = "Regresion lineal multiple logaritmica", x = "Valores teóricos", y = "Residuos estandarizados")+
+  theme_classic(base_size = 25) 
+
+```
+
+Lo que se obsera en este grafico, es que si bien en los extremos la tendencia es alejarse de la recta, los valores estan mucho mas pegados a ella que en el modelo anterior, lo mismo ocurre con los valores intermedios que estan practicamente sobre la recta. Por lo antes explicado, este modelo esta mejor definido que el anterior.
+
+
+
+```{r, fig.width=8,fig.height=8}
+ggplot(lm_precioMultiple_log_resid, aes(.fitted, .resid)) +
+  geom_point()+
+  geom_hline(yintercept = 0) +
+  geom_smooth(se = FALSE)+
+    labs(title = "Residuos versus el modelo ajustado",subtitle = "Regresion lineal multiple logaritmica", x = "valores fitted", y = "Residuos")+
+  theme_classic(base_size = 20) 
+
+```
+
+Si bien en este caso la diferencia no es tan notoria como en el analisis anterior, se puede apreciar que los residuos no estan formando una figura tan concentrada con en el caso no logaritmico, dando una mejora al modelo en este caso. Repasando el articulo sobre la aplicacion de logaritmos para el estudio, este nuevo modelo con logaritmos podria considerarse un hibrido entre un modelo log-nivel para las covariables que no se modificaron y un modelo log-log para aquellas que si lo fueron.
+
+
+### Coeficientes estimados y sus p-valores asociados
+
+```{r, fig.width=8,fig.height=8}
+
+lineal_coef= lm_precioMultiple %>% tidy(conf.int=TRUE)
+lineal_coef_log= lm_precioMultiple_log %>% tidy(conf.int=TRUE)
+
+ggplot(lineal_coef, aes(term, estimate))+
+  geom_point()+
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high))+
+  labs(title = "Coeficientes de la regresion lineal", x="", y="Estimacion e Int. Confianza") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90))
+
+ggplot(lineal_coef_log, aes(term, estimate))+
+  geom_point()+
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high))+
+  labs(title = "Coeficientes de la regresion lineal log", x="", y="Estimacion e Int. Confianza") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90))
+
+```
+
+
+### P-Valor de los regresores
+
+```{r, fig.width=8,fig.height=8}
+ggplot(lineal_coef, aes(reorder(term, -p.value), p.value, fill=p.value))+
+  geom_bar(stat = 'identity', aes(fill=p.value))+
+  geom_hline(yintercept = 0.05) +
+  labs(title = "P-valor de los regresores para multiple", x="", y="P-valor") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90)) + 
+  scale_fill_gradient2(high='firebrick', low = 'forestgreen', mid='yellow2',midpoint = 0.5 )
+
+
+ggplot(lineal_coef_log, aes(reorder(term, -p.value), p.value, fill=p.value))+
+  geom_bar(stat = 'identity', aes(fill=p.value))+
+  geom_hline(yintercept = 0.05) +
+  labs(title = "P-valor de los regresores para multiple log", x="", y="P-valor") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90)) + 
+  scale_fill_gradient2(high='firebrick', low = 'forestgreen', mid='yellow2',midpoint = 0.5 )
+
+```
+
+### Evaluacion de ambos modelos
+
+```{r, fig.width=8,fig.height=8}
+multiple = lm_precioMultiple %>% glance() %>% select(r.squared, adj.r.squared, p.value) 
+multiple_log = lm_precioMultiple_log %>% glance() %>% select(r.squared, adj.r.squared, p.value)
+bind_rows(multiple, multiple_log) %>% mutate(modelo= c('multiple', 'multiple_log'))
+
+```
+
+### Ridge: α=0
+### Lasso: α=1
+### Elastic Net: 0<α<1
+
+
+```{r, fig.width=8,fig.height=8}
+train_test <- preciosModelo %>% resample_partition(c(train=0.7,test=0.3))
+
+precios_train <- train_test$train %>% as_tibble()
+precios_test <- train_test$test %>% as_tibble()
+
+```
+
+## Lasso
+
+```{r, fig.width=8,fig.height=8}
+# Vector con los salarios
+prod_precios = preciosModelo$precio
+# Matriz con los regresores
+prod_mtx = model.matrix(precio~ banderaDescripcion + sucursalTipo + medicion + pVentasC + mCuadradoC, data = preciosModelo)
+
+# Modelo Lasso
+lasso.mod=glmnet(x=prod_mtx, # Matriz de regresores
+                 y=prod_precios, #Vector de la variable a predecir
+                 alpha=1, # Indicador del tipo de regularizacion
+                 standardize = F) # Que esta haciendo este parametro?
+                 
+lasso_coef = lasso.mod %>% tidy()
+
+lasso_coef
+
+```
+
+### Grafico de coeficientes en funcion del lambda
+### Grafico de coeficientes en funcion de la norma de penalizacion
+
+
+```{r, fig.width=8,fig.height=8}
+plot(lasso.mod, xvar = "lambda", label = TRUE)
+title(main = list("Evolución de los coeficientes Lasso", 
+                  cex = 1.5, col = "black", font = 10))
+#plot(lasso.mod)
+
+```
+
+
+Evolución de los coeficientes a medida que se incrementa λ.
+Los coeficientes se van haciendo más pequeños a medida que se incrementa el valor de λ.
+
+
+```{r, fig.width=8,fig.height=8}
+# Graficos para los valores de lambda en ggplot.
+
+g1=lasso_coef  %>% ggplot(., aes(log(lambda), estimate, group=term, color=term)) + geom_line() + theme_bw()  + theme(legend.position = 'none') +
+  labs(title="Lasso con Intercepto",  y="Coeficientes")
+
+g2=lasso_coef %>% filter(term!='(Intercept)') %>% 
+  ggplot(., aes(log(lambda), estimate, group=term, color=term)) + geom_line() + theme_bw()  + theme(legend.position = 'none') +
+  labs(title="Lasso sin Intercepto", y="Coeficientes")
+
+plot_grid(g1,g2)
+
+```
+
+### Cross Validation para LASSO
+
+```{r, fig.width=8,fig.height=8}
+lasso_cv=cv.glmnet(x=prod_mtx,y=prod_precios,alpha=1, standardize = T)
+lasso_cv
+```
+
+```{r, fig.width=8,fig.height=8}
+plot(lasso_cv)
+title(main = list("Lasso", 
+                  cex = 2.5, col = "black", font = 10))
+
+```
+
+El gráfico nos muestra la media del MSE con su limite superior e inferior y la cantidad de varaibles que sobreviven para cada valor de lambda.
+
+
+```{r, fig.width=8,fig.height=8}
+# Información de CV en dataframe con tidy
+lasso_cv %>% tidy()
+
+```
+
+```{r, fig.width=8,fig.height=8}
+# Lambda minimo y lambda a 1 desvio estandar
+lasso_cv %>% glance()
+
+```
+
+```{r, fig.width=8,fig.height=8}
+# Selección lambda óptimo
+lasso_lambda_opt = lasso_cv$lambda.min
+
+# Entrenamiento modelo óptimo
+lasso_opt = glmnet(x=prod_mtx, # Matriz de regresores
+                 y=prod_precios, #Vector de la variable a predecir
+                 alpha=1, # Indicador del tipo de regularizacion
+                 standardize = TRUE,  # Estandarizamos
+                 lambda = lasso_lambda_opt)
+
+# Salida estandar
+#lasso_opt
+# Tidy
+lasso_opt %>% tidy()
+
+```
+
+
+Hay quedado 14 variables explicando el 0.5134 % del deviance.
+
+## RIDGE
+### α=0
+
+```{r, fig.width=8,fig.height=8}
+#Modelo ridge
+ridge.mod=glmnet(x=prod_mtx, # Matriz de regresores
+                 y=prod_precios, #Vector de la variable a predecir
+                 alpha=0, # Indicador del tipo de regularizacion
+                 standardize = TRUE)
+#Coeficientes tidy                 
+ridge_coef= ridge.mod %>% tidy()
+
+ridge_coef 
+
+```
+
+
+```{r, fig.width=8,fig.height=8}
+#plot(ridge.mod)
+plot(ridge.mod, xvar = "lambda", label = TRUE)
+title(main = list("Evolución de los coeficientes Ridge", 
+                  cex = 1.5, col = "black", font = 10))
+
+
+```
+
+
+```{r, fig.width=8,fig.height=8}
+
+g1=ridge_coef  %>% ggplot(., aes(log(lambda), estimate, group=term, color=term)) + geom_line() + theme_bw()  + theme(legend.position = 'none') +
+  labs(title="Ridge con Intercepto",  y="Coeficientes")
+
+g2=ridge_coef %>% filter(term!='(Intercept)') %>% 
+  ggplot(., aes(log(lambda), estimate, group=term, color=term)) + geom_line() + theme_bw()  + theme(legend.position = 'none') +
+  labs(title="Ridge sin Intercepto", y="Coeficientes")
+
+plot_grid(g1,g2)
+```
+
+### Elección lambda óptimo
+
+```{r, fig.width=8,fig.height=8}
+ridge_cv=cv.glmnet(x=prod_mtx,y=prod_precios,alpha=0, standardize = T)
+
+```
+
+
+```{r, fig.width=8,fig.height=8}
+plot(ridge_cv)+
+  title(main = list("Ridge", 
+                  cex = 2.5, col = "black", font = 10))
+
+```
+
+
+
+```{r, fig.width=8,fig.height=8}
+# Selección lambda óptimo
+lasso_cv %>% glance()
+
+```
+
+### Seleccion lambda óptimo para crear el modelo final
+
+```{r, fig.width=8,fig.height=8}
+# Selección lambda óptimo
+ridge_lambda_opt = ridge_cv$lambda.min
+
+# Entrenamiento modelo óptimo
+ridge_opt = glmnet(x=prod_mtx, # Matriz de regresores
+                 y=prod_precios, #Vector de la variable a predecir
+                 alpha=0, # Indicador del tipo de regularizacion
+                 standardize = TRUE,  # Estandarizamos
+                 lambda = ridge_lambda_opt)
+
+# Salida estandar
+#ridge_opt
+ridge_opt %>% tidy()
+
+```
+
+## Compracion entre Lasso y Ridge
+
+```{r, fig.width=8,fig.height=8}
+
+ridge_dev = ridge_coef %>% select(lambda, dev.ratio) %>% distinct() %>%
+  ggplot(., aes(log(lambda), dev.ratio)) +
+  geom_point() +
+  geom_line() +
+  geom_vline(xintercept = log(ridge_lambda_opt), color='steelblue', size=1.5) +
+  labs(title='Ridge: Deviance') +
+  theme_bw() 
+
+lasso_dev = lasso_coef %>% select(lambda, dev.ratio) %>% distinct() %>%
+  ggplot(., aes(log(lambda), dev.ratio)) +
+  geom_point() +
+  geom_line() +
+  geom_vline(xintercept = log(lasso_lambda_opt), color='firebrick', size=1.5) +
+  labs(title='Lasso: Deviance') +
+  theme_bw()
+
+plot_grid(ridge_dev, lasso_dev)
+
+
+```
+
+Compracion de la relación entre el porcentaje de deviance explicada y lambda para los tres tipos de modelos que realizamos
+
+
+
+## Compracion Modelos
+### ridge_opt , lasso_opt, lm_precioMultiple_log
+### precios_train - precios_test
+
+```{r, fig.width=8,fig.height=8}
+ridge_opt
+
+eval_results <- function(true, predicted, df) {
+  SSE <- sum((predicted - true)^2)
+  SST <- sum((true - mean(true))^2)
+  R_square <- 1 - SSE / SST
+  RMSE = sqrt(SSE/nrow(df))
+
+  
+  # Model performance metrics
+data.frame(
+  RMSE = RMSE,
+  Rsquare = R_square
+)
+  
+}
+
+
+```
+
+
+```{r, fig.width=8,fig.height=8}
+# Prediccion y evaluacion en train data Lasso
+predictions_train <- predict(lasso_opt, s = lasso_lambda_opt, newx = prod_mtx)
+eval_results(preciosModelo$precio, predictions_train, preciosModelo)
+# Prediccion y evaluacion en test data Lasso
+predictions_test <- predict(lasso_opt, s = lasso_lambda_opt, newx = prod_mtx)
+eval_results(preciosModelo$precio, predictions_test, preciosModelo)
+
+
+
+
+```
+
+
+```{r, fig.width=8,fig.height=8}
+# Prediction and evaluation on train data Ridge
+predictions_train <- predict(ridge_opt, s = ridge_lambda_opt, newx = prod_mtx)
+eval_results(preciosModelo$precio, predictions_train, preciosModelo)
+# Prediccion y evaluacion en test data Ridge
+predictions_test <- predict(ridge_opt, s = ridge_lambda_opt, newx = prod_mtx)
+eval_results(preciosModelo$precio, predictions_test, preciosModelo)
+
+```
+
+```{r, fig.width=8,fig.height=8}
+par(mfrow = c(1,2))
+plot(ridge_cv,ylab = "Mean Square Error ridge regression" )
+abline(h = 120000)
+plot(lasso_cv,ylab = "Mean Square Error lasso")
+abline(h = 120000)
+
+```
+

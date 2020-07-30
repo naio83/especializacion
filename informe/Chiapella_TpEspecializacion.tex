@@ -1,0 +1,55 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+\documentclass{icisfinal}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\graphicspath{ {imagenes/} }
+\title{TP Especializacion: Precios en CABA}
+\researchtype{Version preliminar}
+\shorttitle{TP Especializacion}
+\track{ABC}
+
+\usepackage[hidelinks]{hyperref}
+\addbibresource{references.bib}
+
+\usepackage{tabularx}  % To have the table fill out the page
+\usepackage{multirow}
+\usepackage{setspace} % To doublespacing
+\usepackage{caption}
+\usepackage{float}
+
+\captionsetup{width=0.8\linewidth}
+
+\begin{document}
+\author{Ignacio Chiapella}
+\maketitle
+
+\begin{table}[h!]
+  \centering
+  \LARGE
+  \begin{tabularx}{\textwidth}{@{}*2{>
+  {\centering\arraybackslash}X}@{}}       
+    \textbf{Ignacio Chiapella} \\
+    FCEyN   \\
+    ignacio.chiapella@gmail.com 
+  \end{tabularx}
+\end{table}
+
+\begin{abstract}
+  Escribir resumen del articulo
+
+  \emph{\textbf{Keywords:} DataMining}
+\end{abstract}
+
+\newpage
+\section{Introduccion}
+\input{introduccion.tex}
+
+\newpage
+\section{Conclusiones}
+\input{conclusiones.tex}
+
+\printbibliography
+
+\end{document}
+
