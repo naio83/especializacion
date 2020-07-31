@@ -534,11 +534,6 @@ eval_results(preciosModelo$precio, predictions_test, preciosModelo)
 ```
 
 ```{r, fig.width=8,fig.height=8}
-par(mfrow = c(1,2))
-plot(ridge_cv,ylab = "Mean Square Error ridge regression" )
-abline(h = 120000)
-plot(lasso_cv,ylab = "Mean Square Error lasso")
-abline(h = 120000)
 
 ```
 

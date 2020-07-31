@@ -210,15 +210,30 @@ Con el fin de identificar el valor de λ que da lugar al mejor modelo, se puede 
 \end{center}
 
 
-Los gráficos muestran el MSE (Mean Square Error) para cada valor de λ junto con la barra de error correspondiente. Se marcan dos valores de λ específicos, el valor con el que se consigue el menor error y el valor con el que se consigue el modelo mas sencillo que se aleja a menos de 1 de desvío estandar del minimo MSE posible. \\
+Los gráficos muestran el MSE (Mean Square Error) para cada valor de λ junto con la barra de error correspondiente. Se marcan dos valores de λ específicos, el valor con el que se consigue el menor error y el valor con el que se consigue el modelo mas sencillo que se aleja a menos de 1 de desvío estandar del mínimo MSE posible. \\
 También el gráfico evidencia la media del MSE con su limite superior e inferior y la cantidad de variables que sobreviven para cada valor de lambda.\\
-Se volverá a correr los modelos pero esta ves con los valores min de λ optimos calculados..\\
+Se volverá a correr los modelos pero esta ves con los valores min de λ óptimos calculados.\\
+
+Se realiza un calculo de ambos modelos para el valor de R2 y Root Mean Square Error (RMSE) para ambos modelos:
 
 
+\begin{center}
+ \begin{tabular}{||c c c c||} 
+ \hline
+    Lasso R2 & Lasso RMSE & Ridge R2 & Ridge RMSE  \\ 
+ \hline
+    0.005039739 & 65.481091 & 0.005040342 & 65.48107\\
+ \hline
+ \hline
+\end{tabular}
+\end{center}
 
 
+\subsection{Comparación de Modelos}
 
+Identificar el mejor método para un problema en particular consiste en dividir las observaciones disponibles en dos grupos (trainig (70\%) y test(30\%)). Luego se ajusto el modelo únicamente con el training y se calcula el MSE \left(Promedio\left(predicción - valor real\right)^{2}\right) utilizando el test set.\\
 
+De los métodos, el que obtiene el menor MSE es el que obtuvo las predicciones mas cercanas a los valores observados, con lo cual el mejor.
 
 
 
