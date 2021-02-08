@@ -1,0 +1,233 @@
+---
+title: "Trabajo Especializacion Modelos Full V1.0.0"
+author: "Ignacio Chiapella"
+output:
+  pdf_document:
+    toc: yes
+  html_notebook:
+    df_print: paged
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+  html_document:
+    df_print: paged
+    toc: yes
+---
+
+<style type="text/css">
+div.main-container {
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+## Librerias
+```{r message=FALSE, warning=FALSE}
+# Gráficos y data processing
+# ==============================================================================
+library(broom)
+library(ggplot2)
+library(cowplot)
+library(tidyverse)
+library(skimr)
+library(scales)
+library(corrr)
+library(dplyr)
+
+# Modelado
+# ==============================================================================
+library(glmnet)
+library(pls)
+library(modelr)
+```
+
+
+
+
+```{r, fig.width=8,fig.height=8}
+set.seed(1983)
+preciosModelo <- read.csv(file = '/home/ignacio/datos/facultad/repos/especializacion/data/preciosModelo.csv')
+#preciosModelo = select (preciosModelo,-c(X,barrio,sucursal,sucursalTipo))
+preciosModelo = select (preciosModelo,-c(X))
+train_test <- preciosModelo %>% resample_partition(c(train=0.3,test=0.7))
+precios_train <- train_test$train %>% as_tibble()
+precios_test <- train_test$test %>% as_tibble()
+
+
+skim(preciosModelo)
+```
+
+
+## Modelo Rigde
+
+```{r, fig.width=8,fig.height=8}
+# Matrices de entrenamiento y test
+# ==============================================================================
+x_train <- model.matrix(precio ~ medicion + banderaDescripcion + mCuadradoC + cantPtosVenta + marca, data = precios_train)[, -1]
+y_train <- precios_train$precio
+
+x_test <- model.matrix(precio ~ medicion + banderaDescripcion + mCuadradoC + cantPtosVenta + marca, data = precios_test)[, -1]
+y_test <- precios_test$precio
+
+```
+
+```{r, fig.width=8,fig.height=8}
+
+# Creación y entrenamiento del modelo
+# ==============================================================================
+# Para obtener un ajuste con regularización Lasso se indica argumento alpha=1.
+modelo_ridge <- glmnet(
+            x           = x_train, # Matriz de regresores
+            y           = y_train, #Vector de la variable a predecir
+            alpha       = 0, # Indicador del tipo de regularizacion
+            standardize = TRUE # Estandarizamos
+          )
+
+ridge_coef = modelo_ridge %>% tidy()
+ridge_coef
+
+```
+
+
+### Grafico de coeficientes en funcion del lambda
+### Grafico de coeficientes en funcion de la norma de penalizacion
+```{r, fig.width=8,fig.height=8}
+# Evolución de los coeficientes en función de lambda
+# ==============================================================================
+plot(modelo_ridge, xvar = "lambda", label = TRUE)
+title(main = list("Evolución de los coeficientes Ridge", 
+                  cex = 1.5, col = "black", font = 10))
+
+
+```
+
+Evolución de los coeficientes a medida que se incrementa λ.
+Los coeficientes se van haciendo más pequeños a medida que se incrementa el valor de λ.
+
+
+```{r, fig.width=8,fig.height=8}
+# Graficos para los valores de lambda en ggplot.
+
+g1=ridge_coef  %>% ggplot(., aes(log(lambda), estimate, group=term, color=term)) + geom_line() + theme_bw()  + theme(legend.position = 'none') +
+  labs(title="Ridge con Intercepto",  y="Coeficientes")
+
+g2=ridge_coef %>% filter(term!='(Intercept)') %>% 
+  ggplot(., aes(log(lambda), estimate, group=term, color=term)) + geom_line() + theme_bw()  + theme(legend.position = 'none') +
+  labs(title="Ridge sin Intercepto", y="Coeficientes")
+
+plot_grid(g1,g2)
+
+```
+
+### Cross Validation para Ridge
+
+```{r, fig.width=8,fig.height=8}
+ridge_cv <- cv.glmnet(
+              x      = x_train,
+              y      = y_train,
+              alpha  = 0,
+              nfolds = 5,
+              #type.measure = "mse",
+              standardize  = TRUE
+           )
+
+
+ridge_cv
+```
+
+```{r, fig.width=8,fig.height=8}
+plot(ridge_cv)
+title(main = list("Ridge", 
+                  cex = 2.5, col = "black", font = 10))
+```
+
+El gráfico nos muestra la media del MSE con su limite superior e inferior y la cantidad de varaibles que sobreviven para cada valor de lambda.
+
+```{r, fig.width=8,fig.height=8}
+# Información de CV en dataframe con tidy
+ridge_cv %>% tidy()
+
+```
+
+```{r, fig.width=8,fig.height=8}
+# Lambda minimo y lambda a 1 desvio estandar
+ridge_cv %>% glance()
+
+```
+
+
+
+
+
+
+```{r, fig.width=8,fig.height=8}
+# Selección lambda óptimo
+ridge_lambda_opt = ridge_cv$lambda.1se
+#ridge_lambda_opt = ridge_cv$lambda.min
+
+# Entrenamiento modelo óptimo
+modelo_ridge_opt = glmnet(x=x_train, # Matriz de regresores
+                   y=y_train, #Vector de la variable a predecir
+                   alpha=1, # Indicador del tipo de regularizacion
+                   standardize = TRUE,  # Estandarizamos
+                   lambda = ridge_lambda_opt)
+
+# Salida estandar
+#lasso_opt
+# Tidy
+modelo_ridge_opt %>% tidy()
+
+```
+
+
+
+Hay quedado 42 variables explicando el 0.43 % del deviance.
+
+
+```{r, fig.width=8,fig.height=8}
+# Coeficientes del modelo
+# ==============================================================================
+df_coeficientes <- coef(modelo_ridge_opt) %>%
+                   as.matrix() %>%
+                   as_tibble(rownames = "predictor") %>%
+                   rename(coeficiente = s0)
+
+df_coeficientes %>%
+  filter(predictor != "(Intercept)") %>%
+  ggplot(aes(x = predictor, y = coeficiente)) +
+  geom_col() +
+  labs(title = "Coeficientes del modelo Lasso") +
+  theme_bw() +
+  theme(axis.text.x = element_text(size = 6, angle = 45))
+
+```
+
+```{r, fig.width=8,fig.height=8}
+df_coeficientes %>%
+  filter(
+    predictor != "(Intercept)",
+    coeficiente != 0
+) 
+
+```
+
+```{r, fig.width=8,fig.height=8}
+# Predicciones de test
+# ==============================================================================
+predicciones_test <- predict(modelo_ridge_opt, newx = x_test)
+
+# RMSE de test
+# ==============================================================================
+test_rmse_ridge <- sqrt(mean((predicciones_test - y_test)^2))
+paste("Error (rmse) de test:", test_rmse_ridge)
+
+```
+
+
+
+
+
+
+
+

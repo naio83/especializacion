@@ -1,0 +1,245 @@
+---
+title: "Trabajo Especializacion Modelos Full V1.0.0"
+author: "Ignacio Chiapella"
+output:
+  pdf_document:
+    toc: yes
+  html_notebook:
+    df_print: paged
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+  html_document:
+    df_print: paged
+    toc: yes
+---
+
+<style type="text/css">
+div.main-container {
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+## Librerias
+```{r message=FALSE, warning=FALSE}
+# Gráficos y data processing
+# ==============================================================================
+library(broom)
+library(ggplot2)
+library(cowplot)
+library(tidyverse)
+library(skimr)
+library(scales)
+library(corrr)
+library(dplyr)
+
+# Modelado
+# ==============================================================================
+library(glmnet)
+library(pls)
+library(modelr)
+```
+
+
+
+
+```{r, fig.width=8,fig.height=8}
+set.seed(1983)
+preciosModelo <- read.csv(file = '/home/ignacio/datos/facultad/repos/especializacion/data/preciosModelo.csv')
+preciosModelo = select (preciosModelo,-c(X,barrio,sucursal,sucursalTipo))
+train_test <- preciosModelo %>% resample_partition(c(train=0.3,test=0.7))
+precios_train <- train_test$train %>% as_tibble()
+precios_test <- train_test$test %>% as_tibble()
+
+#id_precios <- sample(1:nrow(preciosModelo), size = 0.7*nrow(preciosModelo), replace = FALSE)
+#precios_train <- preciosModelo[id_precios, ]
+#precios_test  <- preciosModelo[-id_precios, ]
+
+
+skim(preciosModelo)
+```
+
+
+## Modelo Lineal Simple
+
+```{r, fig.width=8,fig.height=8}
+
+# Creación y entrenamiento del modelo
+# ==============================================================================
+modelo_lnS <- lm(formula = precio~banderaDescripcion, data=precios_train)
+summary(modelo_lnS)
+```
+
+
+```{r, fig.width=8,fig.height=8}
+#names(summary(modelo_lnS))
+summary(modelo_lnS)$adj.r.squared
+```
+
+
+```{r, fig.width=8,fig.height=8}
+# Coeficientes del modelo
+# ==============================================================================
+df_coeficientes <- modelo_lnS$coefficients %>%
+                   enframe(name = "predictor", value = "coeficiente")
+
+df_coeficientes %>%
+  filter(predictor != "(Intercept)") %>%
+  ggplot(aes(x = predictor, y = coeficiente)) +
+  geom_col() +
+  labs(title = "Coeficientes del modelo Regresion Lineal Simple") +
+  theme_bw() +
+  theme(axis.text.x = element_text(size = 10, angle = 45))
+```
+
+```{r, fig.width=8,fig.height=8}
+# Predicciones de entrenamiento y test
+# ==============================================================================
+predicciones_test  <- predict(modelo_lnS, newdata = precios_test)
+
+# RMSE de entrenamiento y test
+# ==============================================================================
+test_rmse_lnS <- sqrt(mean((predicciones_test - precios_test$precio)^2))
+
+# Print RMSE de entrenamiento y test
+# ==============================================================================
+paste("Error (rmse) de test:", test_rmse_lnS)
+
+```
+
+
+
+## Modelo Lineal Compuesto
+
+
+```{r, fig.width=8,fig.height=8}
+
+modelo_lnC = lm(precio ~ medicion + banderaDescripcion + mCuadradoC + cantPtosVenta + marca, data=precios_train)
+summary(modelo_lnC)$adj.r.squared
+```
+
+
+```{r, fig.width=8,fig.height=8}
+# Predicciones de  test
+# ==============================================================================
+predicciones_test  <- predict(modelo_lnC, newdata = precios_test)
+
+# RMSE de  test
+# ==============================================================================
+test_rmse_lnC <- sqrt(mean((predicciones_test - precios_test$precio)^2))
+
+# Print RMSE de  test
+# ==============================================================================
+paste("Error (rmse) de test:", test_rmse_lnC)
+```
+
+
+
+
+## Comparativa
+
+```{r, fig.width=8,fig.height=8}
+modelo_lnS_resid = augment(modelo_lnS)
+modelo_lnC_resid = augment(modelo_lnC)
+modelo_lnS_resid
+modelo_lnC_resid
+```
+
+```{r, fig.width=8,fig.height=8}
+print(mean(modelo_lnS_resid$.resid))
+print(mean(modelo_lnC_resid$.resid))
+```
+
+
+
+```{r, fig.width=8,fig.height=8}
+ggplot(modelo_lnS_resid, aes(modelo_lnS_resid$.resid)) + 
+  geom_freqpoly(binwidth = 2.5)+
+  labs(fill = "propiedades_resid$.resid", title = "Poligono de frecuencia de los residuos", x = "Residuo", y = "count")
+
+```
+
+
+```{r, fig.width=8,fig.height=8}
+ggplot(modelo_lnC_resid, aes(modelo_lnC_resid$.resid)) + 
+  geom_freqpoly(binwidth = 2.5)+
+  labs(fill = "propiedades_resid$.resid", title = "Poligono de frecuencia de los residuos", x = "Residuo", y = "count")
+
+```
+
+```{r, fig.width=8,fig.height=8}
+ggplot(modelo_lnS_resid, aes(sample= .std.resid))+
+  stat_qq()+
+  geom_abline(colour = "blue", size=2)+
+  labs(title = "QQ plot Normal(0,1)",subtitle = "Regresion lineal Simple", x = "Valores teóricos", y = "Residuos estandarizados")+
+  theme_classic(base_size = 25) 
+
+```
+
+
+
+```{r, fig.width=8,fig.height=8}
+ggplot(modelo_lnC_resid, aes(sample= .std.resid))+
+  stat_qq()+
+  geom_abline(colour = "red", size=2)+
+  labs(title = "QQ plot Normal(0,1)",subtitle = "Regresion lineal multiple", x = "Valores teóricos", y = "Residuos estandarizados")+
+  theme_classic(base_size = 25) 
+
+```
+
+
+
+
+
+
+```{r, fig.width=8,fig.height=8}
+ggplot(modelo_lnS_resid, aes(.fitted, .resid)) +
+  geom_point()+
+  geom_hline(yintercept = 0) +
+  geom_smooth(se = FALSE)+
+    labs(title = "Residuos versus el modelo ajustado",subtitle = "Regresion lineal Simple", x = "valores fitted", y = "Residuos")+
+  theme_classic(base_size = 20) 
+
+```
+
+```{r, fig.width=8,fig.height=8}
+ggplot(modelo_lnC_resid, aes(.fitted, .resid)) +
+  geom_point()+
+  geom_hline(yintercept = 0) +
+  geom_smooth(se = FALSE)+
+    labs(title = "Residuos versus el modelo ajustado",subtitle = "Regresion lineal Multiple", x = "valores fitted", y = "Residuos")+
+  theme_classic(base_size = 20) 
+
+```
+
+```{r, fig.width=8,fig.height=8}
+
+
+```
+
+```{r, fig.width=8,fig.height=8}
+
+
+```
+
+```{r, fig.width=8,fig.height=8}
+
+
+```
+
+```{r, fig.width=8,fig.height=8}
+
+
+```
+
+```{r, fig.width=8,fig.height=8}
+
+
+```
+
+```{r, fig.width=8,fig.height=8}
+
+
+```
