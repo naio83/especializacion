@@ -225,7 +225,7 @@ test_rmse_lasso <- sqrt(mean((predicciones_test - y_test)^2))
 paste("Error (rmse) de test:", test_rmse_lasso)
 
 # [1] "Error (rmse) de test: 33.5336783106417"
-#[1] "Error (rmse) de test: 33.6440779134435"
+# [1] "Error (rmse) de test: 33.6440779134435"
 ```
 
 

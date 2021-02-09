@@ -26,9 +26,7 @@ div.main-container {
 ```{r message=FALSE, warning=FALSE}
 # Gráficos y data processing
 # ==============================================================================
-library(broom)
 library(ggplot2)
-library(cowplot)
 library(tidyverse)
 library(skimr)
 library(scales)
@@ -49,6 +47,7 @@ library(modelr)
 set.seed(1983)
 preciosModelo <- read.csv(file = '/home/ignacio/datos/facultad/repos/especializacion/data/preciosModelo.csv')
 preciosModelo = select (preciosModelo,-c(X,barrio,sucursal,sucursalTipo))
+#preciosModelo = select (preciosModelo,-c(X,sucursal,sucursalTipo))
 train_test <- preciosModelo %>% resample_partition(c(train=0.3,test=0.7))
 precios_train <- train_test$train %>% as_tibble()
 precios_test <- train_test$test %>% as_tibble()
@@ -91,22 +90,19 @@ df_coeficientes %>%
   geom_col() +
   labs(title = "Coeficientes del modelo Regresion Lineal Simple") +
   theme_bw() +
-  theme(axis.text.x = element_text(size = 10, angle = 45))
+  theme(axis.text.x = element_text(size = 11, angle = 90))
 ```
 
 ```{r, fig.width=8,fig.height=8}
 # Predicciones de entrenamiento y test
 # ==============================================================================
 predicciones_test  <- predict(modelo_lnS, newdata = precios_test)
-
 # RMSE de entrenamiento y test
 # ==============================================================================
 test_rmse_lnS <- sqrt(mean((predicciones_test - precios_test$precio)^2))
-
 # Print RMSE de entrenamiento y test
 # ==============================================================================
 paste("Error (rmse) de test:", test_rmse_lnS)
-
 ```
 
 
@@ -116,7 +112,7 @@ paste("Error (rmse) de test:", test_rmse_lnS)
 
 ```{r, fig.width=8,fig.height=8}
 
-modelo_lnC = lm(precio ~ medicion + banderaDescripcion + mCuadradoC + cantPtosVenta + marca, data=precios_train)
+modelo_lnC = lm(precio ~ ., data=precios_train)
 summary(modelo_lnC)$adj.r.squared
 ```
 
