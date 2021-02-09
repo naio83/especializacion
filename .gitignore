@@ -1,3 +1,8 @@
 .Rhistory
-*.html
+.html
 analisis_modelos_full_v1_files/
+data/*.csv
+data/*.json
+data/*.geojson
+data/plus/
+

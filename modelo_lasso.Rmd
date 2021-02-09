@@ -27,8 +27,8 @@ div.main-container {
 # Gráficos y data processing
 # ==============================================================================
 library(broom)
-library(ggplot2)
 library(cowplot)
+library(ggplot2)
 library(tidyverse)
 library(skimr)
 library(scales)
@@ -45,11 +45,11 @@ library(modelr)
 
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 set.seed(1983)
-preciosModelo <- read.csv(file = '/home/ignacio/datos/facultad/repos/especializacion/data/preciosModelo.csv')
-#preciosModelo = select (preciosModelo,-c(X,barrio,sucursal,sucursalTipo))
-preciosModelo = select (preciosModelo,-c(X))
+preciosModelo <- read.csv(file = '/home/ichiapella/datos/dataScience/especializacion/data/preciosModelo.csv')
+preciosModelo = select (preciosModelo,-c(X,barrio,sucursal,sucursalTipo))
+#preciosModelo = select (preciosModelo,-c(X))
 train_test <- preciosModelo %>% resample_partition(c(train=0.3,test=0.7))
 precios_train <- train_test$train %>% as_tibble()
 precios_test <- train_test$test %>% as_tibble()
@@ -61,7 +61,7 @@ skim(preciosModelo)
 
 ## Modelo Lasso
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 # Matrices de entrenamiento y test
 # ==============================================================================
 x_train <- model.matrix(precio ~ medicion + banderaDescripcion + mCuadradoC + cantPtosVenta + marca, data = precios_train)[, -1]
@@ -72,7 +72,7 @@ y_test <- precios_test$precio
 
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 
 # Creación y entrenamiento del modelo
 # ==============================================================================
@@ -94,7 +94,7 @@ lasso_coef
 
 ### Grafico de coeficientes en funcion del lambda
 ### Grafico de coeficientes en funcion de la norma de penalizacion
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 # Evolución de los coeficientes en función de lambda
 # ==============================================================================
 plot(modelo_lasso, xvar = "lambda", label = TRUE)
@@ -108,7 +108,7 @@ Evolución de los coeficientes a medida que se incrementa λ.
 Los coeficientes se van haciendo más pequeños a medida que se incrementa el valor de λ.
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 # Graficos para los valores de lambda en ggplot.
 
 g1=lasso_coef  %>% ggplot(., aes(log(lambda), estimate, group=term, color=term)) + geom_line() + theme_bw()  + theme(legend.position = 'none') +
@@ -124,7 +124,7 @@ plot_grid(g1,g2)
 
 ### Cross Validation para LASSO
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 lasso_cv <- cv.glmnet(
               x      = x_train,
               y      = y_train,
@@ -138,7 +138,7 @@ lasso_cv <- cv.glmnet(
 lasso_cv
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 plot(lasso_cv)
 title(main = list("Lasso", 
                   cex = 2.5, col = "black", font = 10))
@@ -146,13 +146,13 @@ title(main = list("Lasso",
 
 El gráfico nos muestra la media del MSE con su limite superior e inferior y la cantidad de varaibles que sobreviven para cada valor de lambda.
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 # Información de CV en dataframe con tidy
 lasso_cv %>% tidy()
 
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 # Lambda minimo y lambda a 1 desvio estandar
 lasso_cv %>% glance()
 
@@ -163,7 +163,7 @@ lasso_cv %>% glance()
 
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 # Selección lambda óptimo
 lasso_lambda_opt = lasso_cv$lambda.1se
 #lasso_lambda_opt = lasso_cv$lambda.min
@@ -184,10 +184,10 @@ modelo_lasso_opt %>% tidy()
 
 
 
-Hay quedado 306 variables explicando el 0.7391 % del deviance.
+Han quedado 306 variables explicando el 0.7391 % del deviance.
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 # Coeficientes del modelo
 # ==============================================================================
 df_coeficientes <- coef(modelo_lasso_opt) %>%
@@ -205,7 +205,7 @@ df_coeficientes %>%
 
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 df_coeficientes %>%
   filter(
     predictor != "(Intercept)",
@@ -214,7 +214,7 @@ df_coeficientes %>%
 
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 # Predicciones de test
 # ==============================================================================
 predicciones_test <- predict(modelo_lasso_opt, newx = x_test)

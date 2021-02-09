@@ -26,7 +26,10 @@ div.main-container {
 ```{r message=FALSE, warning=FALSE}
 # Gráficos y data processing
 # ==============================================================================
+library(broom)
+library(cowplot)
 library(ggplot2)
+# sudo apt-get install r-cran-curl r-cran-openssl r-cran-xml2
 library(tidyverse)
 library(skimr)
 library(scales)
@@ -43,19 +46,14 @@ library(modelr)
 
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 set.seed(1983)
-preciosModelo <- read.csv(file = '/home/ignacio/datos/facultad/repos/especializacion/data/preciosModelo.csv')
+preciosModelo <- read.csv(file = '/home/ichiapella/datos/dataScience/especializacion/data/preciosModelo.csv')
 preciosModelo = select (preciosModelo,-c(X,barrio,sucursal,sucursalTipo))
 #preciosModelo = select (preciosModelo,-c(X,sucursal,sucursalTipo))
 train_test <- preciosModelo %>% resample_partition(c(train=0.3,test=0.7))
 precios_train <- train_test$train %>% as_tibble()
 precios_test <- train_test$test %>% as_tibble()
-
-#id_precios <- sample(1:nrow(preciosModelo), size = 0.7*nrow(preciosModelo), replace = FALSE)
-#precios_train <- preciosModelo[id_precios, ]
-#precios_test  <- preciosModelo[-id_precios, ]
-
 
 skim(preciosModelo)
 ```
@@ -63,7 +61,7 @@ skim(preciosModelo)
 
 ## Modelo Lineal Simple
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 
 # Creación y entrenamiento del modelo
 # ==============================================================================
@@ -72,13 +70,13 @@ summary(modelo_lnS)
 ```
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 #names(summary(modelo_lnS))
 summary(modelo_lnS)$adj.r.squared
 ```
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 # Coeficientes del modelo
 # ==============================================================================
 df_coeficientes <- modelo_lnS$coefficients %>%
@@ -90,10 +88,10 @@ df_coeficientes %>%
   geom_col() +
   labs(title = "Coeficientes del modelo Regresion Lineal Simple") +
   theme_bw() +
-  theme(axis.text.x = element_text(size = 11, angle = 90))
+  theme(axis.text.x = element_text(size = 10, angle = 90))
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 # Predicciones de entrenamiento y test
 # ==============================================================================
 predicciones_test  <- predict(modelo_lnS, newdata = precios_test)
@@ -110,14 +108,14 @@ paste("Error (rmse) de test:", test_rmse_lnS)
 ## Modelo Lineal Compuesto
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 
 modelo_lnC = lm(precio ~ ., data=precios_train)
 summary(modelo_lnC)$adj.r.squared
 ```
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 # Predicciones de  test
 # ==============================================================================
 predicciones_test  <- predict(modelo_lnC, newdata = precios_test)
@@ -136,21 +134,21 @@ paste("Error (rmse) de test:", test_rmse_lnC)
 
 ## Comparativa
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 modelo_lnS_resid = augment(modelo_lnS)
 modelo_lnC_resid = augment(modelo_lnC)
 modelo_lnS_resid
 modelo_lnC_resid
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 print(mean(modelo_lnS_resid$.resid))
 print(mean(modelo_lnC_resid$.resid))
 ```
 
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 ggplot(modelo_lnS_resid, aes(modelo_lnS_resid$.resid)) + 
   geom_freqpoly(binwidth = 2.5)+
   labs(fill = "propiedades_resid$.resid", title = "Poligono de frecuencia de los residuos", x = "Residuo", y = "count")
@@ -158,14 +156,14 @@ ggplot(modelo_lnS_resid, aes(modelo_lnS_resid$.resid)) +
 ```
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 ggplot(modelo_lnC_resid, aes(modelo_lnC_resid$.resid)) + 
   geom_freqpoly(binwidth = 2.5)+
   labs(fill = "propiedades_resid$.resid", title = "Poligono de frecuencia de los residuos", x = "Residuo", y = "count")
 
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 ggplot(modelo_lnS_resid, aes(sample= .std.resid))+
   stat_qq()+
   geom_abline(colour = "blue", size=2)+
@@ -176,7 +174,7 @@ ggplot(modelo_lnS_resid, aes(sample= .std.resid))+
 
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 ggplot(modelo_lnC_resid, aes(sample= .std.resid))+
   stat_qq()+
   geom_abline(colour = "red", size=2)+
@@ -190,7 +188,7 @@ ggplot(modelo_lnC_resid, aes(sample= .std.resid))+
 
 
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 ggplot(modelo_lnS_resid, aes(.fitted, .resid)) +
   geom_point()+
   geom_hline(yintercept = 0) +
@@ -200,7 +198,7 @@ ggplot(modelo_lnS_resid, aes(.fitted, .resid)) +
 
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 ggplot(modelo_lnC_resid, aes(.fitted, .resid)) +
   geom_point()+
   geom_hline(yintercept = 0) +
@@ -210,32 +208,32 @@ ggplot(modelo_lnC_resid, aes(.fitted, .resid)) +
 
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 
 
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 
 
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 
 
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 
 
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 
 
 ```
 
-```{r, fig.width=8,fig.height=8}
+```{r, fig.width=6,fig.height=6}
 
 
 ```
