@@ -49,11 +49,9 @@ library(modelr)
 set.seed(1983)
 preciosModelo <- read.csv(file = '/home/ichiapella/datos/dataScience/especializacion/data/preciosModelo.csv')
 preciosModelo = select (preciosModelo,-c(X,barrio,sucursal,sucursalTipo))
-#preciosModelo = select (preciosModelo,-c(X))
 train_test <- preciosModelo %>% resample_partition(c(train=0.3,test=0.7))
 precios_train <- train_test$train %>% as_tibble()
 precios_test <- train_test$test %>% as_tibble()
-
 
 skim(preciosModelo)
 ```
@@ -165,8 +163,8 @@ lasso_cv %>% glance()
 
 ```{r, fig.width=6,fig.height=6}
 # Selección lambda óptimo
-lasso_lambda_opt = lasso_cv$lambda.1se
-#lasso_lambda_opt = lasso_cv$lambda.min
+#lasso_lambda_opt = lasso_cv$lambda.1se
+lasso_lambda_opt = lasso_cv$lambda.min
 
 # Entrenamiento modelo óptimo
 modelo_lasso_opt = glmnet(x=x_train, # Matriz de regresores

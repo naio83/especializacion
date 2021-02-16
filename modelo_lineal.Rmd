@@ -50,7 +50,6 @@ library(modelr)
 set.seed(1983)
 preciosModelo <- read.csv(file = '/home/ichiapella/datos/dataScience/especializacion/data/preciosModelo.csv')
 preciosModelo = select (preciosModelo,-c(X,barrio,sucursal,sucursalTipo))
-#preciosModelo = select (preciosModelo,-c(X,sucursal,sucursalTipo))
 train_test <- preciosModelo %>% resample_partition(c(train=0.3,test=0.7))
 precios_train <- train_test$train %>% as_tibble()
 precios_test <- train_test$test %>% as_tibble()
@@ -115,6 +114,30 @@ summary(modelo_lnC)$adj.r.squared
 ```
 
 
+```{r, fig.width=8,fig.height=8}
+lineal_coef= modelo_lnC %>% tidy(conf.int=TRUE)
+limite= subset(lineal_coef%>%select(term, p.value),p.value>0.000005 )
+
+
+ggplot(limite, aes(reorder(term, -p.value), p.value, fill=p.value))+
+  geom_bar(stat = 'identity', aes(fill=p.value))+
+  geom_hline(yintercept = 0.025) +
+  labs(title = "P-valor regresores", x="", y="P-valor") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90)) + 
+  scale_fill_gradient2(high='firebrick', low = 'forestgreen', mid='yellow2',midpoint = 0.05 )
+
+```
+
+
+
+
+
+
+
+
+
+
 ```{r, fig.width=6,fig.height=6}
 # Predicciones de  test
 # ==============================================================================
@@ -128,6 +151,10 @@ test_rmse_lnC <- sqrt(mean((predicciones_test - precios_test$precio)^2))
 # ==============================================================================
 paste("Error (rmse) de test:", test_rmse_lnC)
 ```
+
+
+
+
 
 
 
@@ -151,7 +178,7 @@ print(mean(modelo_lnC_resid$.resid))
 ```{r, fig.width=6,fig.height=6}
 ggplot(modelo_lnS_resid, aes(modelo_lnS_resid$.resid)) + 
   geom_freqpoly(binwidth = 2.5)+
-  labs(fill = "propiedades_resid$.resid", title = "Poligono de frecuencia de los residuos", x = "Residuo", y = "count")
+  labs(fill = "propiedades_resid$.resid", title = "Poligono de frecuencia de los residuos Modelo Lineal Simple", x = "Residuo", y = "count")
 
 ```
 
@@ -159,7 +186,7 @@ ggplot(modelo_lnS_resid, aes(modelo_lnS_resid$.resid)) +
 ```{r, fig.width=6,fig.height=6}
 ggplot(modelo_lnC_resid, aes(modelo_lnC_resid$.resid)) + 
   geom_freqpoly(binwidth = 2.5)+
-  labs(fill = "propiedades_resid$.resid", title = "Poligono de frecuencia de los residuos", x = "Residuo", y = "count")
+  labs(fill = "propiedades_resid$.resid", title = "Poligono de frecuencia de los residuos Modelo Lineal Múltiple", x = "Residuo", y = "count")
 
 ```
 
@@ -194,7 +221,7 @@ ggplot(modelo_lnS_resid, aes(.fitted, .resid)) +
   geom_hline(yintercept = 0) +
   geom_smooth(se = FALSE)+
     labs(title = "Residuos versus el modelo ajustado",subtitle = "Regresion lineal Simple", x = "valores fitted", y = "Residuos")+
-  theme_classic(base_size = 20) 
+  theme_classic(base_size = 18) 
 
 ```
 
@@ -204,7 +231,7 @@ ggplot(modelo_lnC_resid, aes(.fitted, .resid)) +
   geom_hline(yintercept = 0) +
   geom_smooth(se = FALSE)+
     labs(title = "Residuos versus el modelo ajustado",subtitle = "Regresion lineal Multiple", x = "valores fitted", y = "Residuos")+
-  theme_classic(base_size = 20) 
+  theme_classic(base_size = 18) 
 
 ```
 

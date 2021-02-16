@@ -54,7 +54,7 @@ library(stringr)
 ```
 
 ```{r, fig.width=8,fig.height=8}
-preciosModelo <- read.csv(file = '/home/ignacio/datos/facultad/repos/especializacion/data/preciosModelo.csv')
+preciosModelo <- read.csv(file = '/home/ichiapella/datos/dataScience/especializacion/data/preciosModelo.csv')
 preciosModelo = select (preciosModelo,-c(X,barrio,sucursal,sucursalTipo))
 preciosModelo <- preciosModelo %>% resample_partition(c(train=0.3,test=0.7))
 preciosModelo = preciosModelo$train %>% as_tibble()

@@ -48,8 +48,7 @@ library(modelr)
 ```{r, fig.width=6,fig.height=6}
 set.seed(1983)
 preciosModelo <- read.csv(file = '/home/ichiapella/datos/dataScience/especializacion/data/preciosModelo.csv')
-#preciosModelo = select (preciosModelo,-c(X,barrio,sucursal,sucursalTipo))
-preciosModelo = select (preciosModelo,-c(X))
+preciosModelo = select (preciosModelo,-c(X,barrio,sucursal,sucursalTipo))
 train_test <- preciosModelo %>% resample_partition(c(train=0.3,test=0.7))
 precios_train <- train_test$train %>% as_tibble()
 precios_test <- train_test$test %>% as_tibble()
@@ -163,8 +162,8 @@ ridge_cv %>% glance()
 
 ```{r, fig.width=6,fig.height=6}
 # Selección lambda óptimo
-ridge_lambda_opt = ridge_cv$lambda.1se
-#ridge_lambda_opt = ridge_cv$lambda.min
+#ridge_lambda_opt = ridge_cv$lambda.1se
+ridge_lambda_opt = ridge_cv$lambda.min
 
 # Entrenamiento modelo óptimo
 modelo_ridge_opt = glmnet(x=x_train, # Matriz de regresores
@@ -182,7 +181,7 @@ modelo_ridge_opt %>% tidy()
 
 
 
-Hay quedado 42 variables explicando el 0.43 % del deviance.
+Hay quedado 77 variables explicando el 0.57 % del deviance.
 
 
 ```{r, fig.width=6,fig.height=6}
@@ -236,14 +235,14 @@ paste("Error (rmse) de test:", test_rmse_ridge)
 
 
 ```{r, fig.width=6,fig.height=6}
-df_comparacion <- data.frame(
-                    modelo = c("LnS", "LnC", "Ridge", "Lasso" ),
-                    rmse    = c(1, 1.5, 2, 1.2)
+df_comparacion = data.frame(
+                    Modelo = c("Lin_Simple", "Lin_Compuesta", "Ridge", "Lasso" ),
+                    RMSE    = c(65.4811, 33.4335, 42.7940, 33.5336)
 )
 
-ggplot(data = df_comparacion, aes(x = modelo, y = rmse)) +
-  geom_col(width = 0.5) +
-  geom_text(aes(label = round(rmse, 2)), vjust = -0.1) +
+ggplot(data = df_comparacion, aes(x = Modelo, y = RMSE)) +
+  geom_col(width = 0.5, fill="steelblue") +
+  geom_text(aes(label = round(RMSE, 4)), vjust = -0.5) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```

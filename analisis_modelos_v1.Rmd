@@ -30,6 +30,7 @@ library(glmnet)
 library(modelr)
 library(ggplot2)
 library(cowplot)
+# sudo apt-get install libssl-dev libsasl2-dev
 library(mongolite)
 library(ggmap)
 library(dplyr)
@@ -44,7 +45,7 @@ library(stringr)
 
 ## Modelo lineal
 ```{r}
-preciosModelo <- read.csv(file = '/home/ignacio/datos/facultad/repos/especializacion/data/preciosModelo.csv')
+preciosModelo <- read.csv(file = '/home/ichiapella/datos/dataScience/especializacion/data/preciosModelo.csv')
 preciosModelo = select (preciosModelo,-c(X,barrio,sucursal))
 ```
 
