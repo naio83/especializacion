@@ -1,6 +1,8 @@
 .Rhistory
 .html
 .nb.html
+*.nb.html
+*.html
 analisis_modelos_full_v1_files/
 data/*.csv
 data/*.json
