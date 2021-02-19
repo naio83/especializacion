@@ -1,0 +1,54 @@
+%\documentclass[11pt,a4paper,twoside]{especializacion}
+% FORMATO LIBRO OFF:
+\documentclass[11pt,a4paper]{especializacion}
+
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[left=3cm,right=3cm,bottom=3.5cm,top=3.5cm]{geometry}
+\usepackage{url}
+\usepackage{biblatex}
+\addbibresource{bibliografia.bib}
+\usepackage{listings}
+\usepackage{wrapfig}
+
+\begin{document}
+%%%% CARATULA
+
+\def\autor{Ignacio José Chiapella}
+\def\tituloTesis{Análisis de precios en productos de góndola: \vspace{.2cm} \\ Ciudad de Buenos Aires}
+\def\runtitulo{Análisis de precios en productos de góndola: \vspace{.2cm} \\ Ciudad de Buenos Aires}
+\def\director{Ricardo Maronna }
+%\def\codirector{abc }
+\def\lugar{Buenos Aires, 2021}
+\input{caratula}
+
+
+\tableofcontents
+
+\chapter{Abstract}
+\input{1_abstract.tex}
+
+\chapter{Introducción}
+\input{2_introduccion.tex}
+
+\chapter{Datos y Herramientas}
+\input{3_datos.tex}
+
+\chapter{Análisis Exploratorio}
+\input{4_exploratorio.tex}
+
+\chapter{Modelos}
+\input{5_modelos.tex}
+
+\chapter{Resumen Final}
+\input{6_conclusiones.tex}
+
+%\appendix
+%\chapter{Arquitectura de Solución y Herramientas}
+%\input{7_apendice}
+
+\printbibliography
+%\newpage
+\end{document}
+
