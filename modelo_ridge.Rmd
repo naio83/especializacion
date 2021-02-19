@@ -55,6 +55,7 @@ precios_test <- train_test$test %>% as_tibble()
 
 
 skim(preciosModelo)
+alpha_var = 0 # Ridge
 ```
 
 
@@ -75,11 +76,11 @@ y_test <- precios_test$precio
 
 # Creación y entrenamiento del modelo
 # ==============================================================================
-# Para obtener un ajuste con regularización Lasso se indica argumento alpha=1.
+# Para obtener un ajuste con regularización Ridge se indica argumento alpha=0.
 modelo_ridge <- glmnet(
             x           = x_train, # Matriz de regresores
             y           = y_train, #Vector de la variable a predecir
-            alpha       = 0, # Indicador del tipo de regularizacion
+            alpha       = alpha_var, # Indicador del tipo de regularizacion
             standardize = TRUE # Estandarizamos
           )
 
@@ -125,7 +126,7 @@ plot_grid(g1,g2)
 ridge_cv <- cv.glmnet(
               x      = x_train,
               y      = y_train,
-              alpha  = 0,
+              alpha  = alpha_var,
               nfolds = 5,
               #type.measure = "mse",
               standardize  = TRUE
@@ -168,7 +169,7 @@ ridge_lambda_opt = ridge_cv$lambda.min
 # Entrenamiento modelo óptimo
 modelo_ridge_opt = glmnet(x=x_train, # Matriz de regresores
                    y=y_train, #Vector de la variable a predecir
-                   alpha=1, # Indicador del tipo de regularizacion
+                   alpha=alpha_var, # Indicador del tipo de regularizacion
                    standardize = TRUE,  # Estandarizamos
                    lambda = ridge_lambda_opt)
 
@@ -181,7 +182,7 @@ modelo_ridge_opt %>% tidy()
 
 
 
-Hay quedado 77 variables explicando el 0.57 % del deviance.
+Hay quedado 306 variables explicando el 73 % del deviance.
 
 
 ```{r, fig.width=6,fig.height=6}
@@ -237,7 +238,7 @@ paste("Error (rmse) de test:", test_rmse_ridge)
 ```{r, fig.width=6,fig.height=6}
 df_comparacion = data.frame(
                     Modelo = c("Lin_Simple", "Lin_Compuesta", "Ridge", "Lasso" ),
-                    RMSE    = c(65.4811, 33.4335, 42.7940, 33.5336)
+                    RMSE    = c(65.4811, 33.4335, 33.7091, 33.5336)
 )
 
 ggplot(data = df_comparacion, aes(x = Modelo, y = RMSE)) +

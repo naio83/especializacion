@@ -69,6 +69,9 @@ summary(modelo_lnS)
 ```
 
 
+
+
+
 ```{r, fig.width=6,fig.height=6}
 #names(summary(modelo_lnS))
 summary(modelo_lnS)$adj.r.squared
@@ -112,6 +115,8 @@ paste("Error (rmse) de test:", test_rmse_lnS)
 modelo_lnC = lm(precio ~ ., data=precios_train)
 summary(modelo_lnC)$adj.r.squared
 ```
+
+
 
 
 ```{r, fig.width=8,fig.height=8}
@@ -228,8 +233,8 @@ ggplot(modelo_lnS_resid, aes(.fitted, .resid)) +
 ```{r, fig.width=6,fig.height=6}
 ggplot(modelo_lnC_resid, aes(.fitted, .resid)) +
   geom_point()+
-  geom_hline(yintercept = 0) +
-  geom_smooth(se = FALSE)+
+  geom_hline(colour = "red", yintercept = 0) +
+  geom_smooth(colour = "red", se = FALSE)+
     labs(title = "Residuos versus el modelo ajustado",subtitle = "Regresion lineal Multiple", x = "valores fitted", y = "Residuos")+
   theme_classic(base_size = 18) 
 

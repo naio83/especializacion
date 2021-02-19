@@ -113,15 +113,15 @@ Se enrriquece la informacion de las sucursales con la informacion de en que barr
 
 ```{r}
 # Se generaa cortes del valor del dolar medio entre compra y venta cada 7 dias
-dolar_7_dias= dolar
-dolar_7_dias$dolarPromedio = rowMeans(dolar[ , c(1,2)], na.rm=TRUE)
-dolar_7_dias = subset(dolar_7_dias, select = -c(1,2) )
-dolar_7_dias = group_by(dolar_7_dias, fecha=floor_date(fecha, "7 days"))
-dolar_7_dias = summarize(dolar_7_dias, dolarPromedio=mean(dolarPromedio))
+dolar_15_dias= dolar
+dolar_15_dias$dolarPromedio = rowMeans(dolar[ , c(1,2)], na.rm=TRUE)
+dolar_15_dias = subset(dolar_15_dias, select = -c(1,2) )
+dolar_15_dias = group_by(dolar_15_dias, fecha=floor_date(fecha, "15 days"))
+dolar_15_dias = summarize(dolar_15_dias, dolarPromedio=mean(dolarPromedio))
 
 # Formateo la fecha
 inflacion$fecha=as.Date(inflacion$fecha, format="%m/%d/%y")
-dolar_7_dias$fecha=as.Date(dolar_7_dias$fecha, format="%m/%d/%y")
+dolar_15_dias$fecha=as.Date(dolar_15_dias$fecha, format="%m/%d/%y")
 ```
 
 
@@ -496,15 +496,15 @@ Se puede evidenciar que las cadenas de supermercado tienen precios claramente di
 
 
 ### Grafico de la media de todos los precios vs inflasion y dolar
-```{r, fig.width=12,fig.height=6}
+```{r, fig.width=8,fig.height=6}
 # Grafico de la evolucion del precio del dolar y la inflacion
 ggplot() +  geom_line(aes(x=inflacion$fecha, y=inflacion$porcentaje, colour="Inflacion")) +
-            geom_line(size = 1,aes(x=dolar_7_dias$fecha, y=dolar_7_dias$dolarPromedio, colour="dolar_7_dias")) +
+            geom_line(size = 1,aes(x=dolar_15_dias$fecha, y=dolar_15_dias$dolarPromedio/10, colour="dolar_promedio")) +
             ylab('Valores')+xlab('Fecha') +
             labs(colour = "Referencia") +
             ggtitle("Comparativa de las curvas de variacion del dolar y la inflacion mes a mes") +
             theme(plot.title = element_text(hjust = 0.5))+
-            theme(plot.title = element_text(size=20))+
+            theme(plot.title = element_text(size=12))+
             theme(text = element_text(size=16))
 ```
 

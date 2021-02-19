@@ -54,6 +54,7 @@ precios_train <- train_test$train %>% as_tibble()
 precios_test <- train_test$test %>% as_tibble()
 
 skim(preciosModelo)
+alpha_var = 1 # Lasso
 ```
 
 
@@ -78,7 +79,7 @@ y_test <- precios_test$precio
 modelo_lasso <- glmnet(
             x           = x_train, # Matriz de regresores
             y           = y_train, #Vector de la variable a predecir
-            alpha       = 1, # Indicador del tipo de regularizacion
+            alpha       = alpha_var, # Indicador del tipo de regularizacion
             standardize = TRUE # Estandarizamos
           )
 
@@ -126,7 +127,7 @@ plot_grid(g1,g2)
 lasso_cv <- cv.glmnet(
               x      = x_train,
               y      = y_train,
-              alpha  = 1,
+              alpha  = alpha_var,
               nfolds = 5,
               #type.measure = "mse",
               standardize  = TRUE
@@ -169,7 +170,7 @@ lasso_lambda_opt = lasso_cv$lambda.min
 # Entrenamiento modelo óptimo
 modelo_lasso_opt = glmnet(x=x_train, # Matriz de regresores
                    y=y_train, #Vector de la variable a predecir
-                   alpha=1, # Indicador del tipo de regularizacion
+                   alpha=alpha_var, # Indicador del tipo de regularizacion
                    standardize = TRUE,  # Estandarizamos
                    lambda = lasso_lambda_opt)
 
