@@ -8,7 +8,7 @@
 2) informe: LaTeX y graficos que conforman el informe.
 ------
 ##### Archivos:
-1) analisis_exploratorio_v1.Rdm : se encuentra el codigo correspondiente al analisis descriptivo.
+1) analisis_exploratorio.Rdm : se encuentra el codigo correspondiente al analisis descriptivo.
 2) modelo_lineal.Rdm : se encuentra el codigo correspondiente al analisis de la regresion Lineal simpre y compuesta.
 3) modelo_lasso.Rdm : se encuentra el codigo correspondiente al analisis de la regresion Lasso.
 4) modelo_ridge.Rdm : se encuentra el codigo correspondiente al analisis de la regresion Ridge y compracion final.
