@@ -1,5 +1,5 @@
 
-El conjunto de datos inicial fue obtenido mediante una técnica de web crawling sobre el sitio de Precios Claros \cite{preciosClaros},  en un periodo de tiempo que abarca desde noviembre de 2018 hasta febrero de 2019, de dicho periodo se obtuvieron un total de 10 mediciones que son las que componen el set de datos. En cada medición se tomaron muestras de información sobre 1000 productos repartidos entre 175 puntos de venta, claro que no en todas las mediciones se encontró información sobre los 1000 productos con lo cual se trabajo filtrando productos que en ninguna de las 10 mediciones mostraron información, o que a realizar algún cruce presentaron datos no consistentes.\\
+El conjunto de datos inicial fue obtenido mediante una técnica de web crawling sobre el sitio de Precios Claros \cite{preciosClaros},  en un período de tiempo que abarca desde noviembre de 2018 hasta febrero de 2019, de dicho período se obtuvieron un total de 10 mediciones que son las que componen el set de datos. En cada medición se tomaron muestras de información sobre 1000 productos repartidos entre 175 puntos de venta, claro que no en todas las mediciones se encontró información sobre los 1000 productos con lo cual se trabajo filtrando productos que en ninguna de las 10 mediciones mostraron información, o que a realizar algún cruce presentaron datos no consistentes.\\
 Las variables estuvieron separadas en principio en tres grandes grupos de datos agrupadas según:
 
 \begin{itemize}
@@ -9,7 +9,7 @@ Las variables estuvieron separadas en principio en tres grandes grupos de datos 
 \end{itemize}
 
 
-Se realizaron varios enriquecimientos de datos con fuentes externas las cuales se utilizaron para darle mas solides a las conclusiones que se iban obteniendo. 
+Se realizaron varios enriquecimientos de datos con fuentes externas las cuales se utilizaron para darle mas solidez a las conclusiones que se iban obteniendo. 
 La idea de esta incorporación de datos no es simplemente engordar los datos con información de contexto, sino poder cruzar los datos originales con distintos fenómenos presentes en el periodo de tiempo estudiado y también poder tomar datos de distribución de barrios y puntos de venta en la ciudad.\\
 Se incluyo para los barrios el precio del metro cuadrado de las viviendas \cite{Properati}, también se obtuvieron métricas del precio del Dolar Norteamericano en el periodo estudiado \cite{cotDolar}. Del mismo modo que el precio del dolar se incluyo la evolución de la inflación en la Argentina \cite{indec}. 
 Para la ubicación espacial de los puntos de venta se utilizo la latitud y longitud provista y para correlacionar con los barrios donde estaban ubicados mediante la información de los polígonos de los barrios brindados por la Ciudad de Buenos Aires \cite{barriosGeoJSON}.
@@ -22,4 +22,4 @@ Para comenzar el análisis los datos de los precios, sucursales y productos fuer
 Las visualizaciones se crearon utilizando ggplot2 \cite{ggplot2} y el entorno de desarrollo fue R Studio v 1.4.1103 \cite{rstudio}.\\
 La programación y ejecución del código fue ejecutado en una maquina con Ubuntu 20.04 LTS sobre un procesador Intel Core I7 con 16Gb de memoria RAM.\\
 El informe fue confeccionado en LaTeX \cite{latex} y el reservorio de datos elegido fue github \cite{github}.
-El código y datos de este trabajo se encuentra publico y puede encontrarse en la siguiente cita \cite{repo}.
+El código y datos de este trabajo se encuentra publico y puede encontrarse en la siguiente cita \cite{repo_mio}.
